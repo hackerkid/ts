@@ -3,7 +3,8 @@ import curses
 import configparser
 import argparse
 
-import learn_python
+import learn_python as course
+module = "learn_python"
 
 config = configparser.ConfigParser()
 
@@ -34,7 +35,12 @@ def get_current_chapter():
 def print_chapter(chapter_id=None):
     chapter_id = chapter_id or get_current_chapter()
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("Epic")
+
+    chapter_prefix = course.index[chapter_id]["prefix"]
+    path = "{}/chapters/{}.md".format(module, chapter_prefix)
+    with open(path, "r") as f:
+        data = f.read()
+        print(data)
 
 def draw_menu(stdscr):
     stdscr.clear()
@@ -48,8 +54,8 @@ def draw_menu(stdscr):
     k = 0
     while k != ord('q'):
         i = 0
-        for chapter_id in learn_python.index:
-            chapter = learn_python.index[chapter_id]
+        for chapter_id in course.index:
+            chapter = course.index[chapter_id]
             color_pair = 1
             if current_selection == i:
                 color_pair = 2
@@ -62,11 +68,11 @@ def draw_menu(stdscr):
         k = stdscr.getch()
         if k == curses.KEY_UP:
             if current_selection == 0:
-                current_selection = len(learn_python.index) - 1
+                current_selection = len(course.index) - 1
             else:
                 current_selection = current_selection - 1
         elif k == curses.KEY_DOWN:
-            if current_selection == len(learn_python.index) - 1:
+            if current_selection == len(course.index) - 1:
                 current_selection = 0
             else:
                 current_selection = current_selection + 1
