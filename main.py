@@ -1,5 +1,7 @@
 import sys,os
 import curses
+import configparser
+config = configparser.ConfigParser()
 
 chapters = [
     "Hello world",
@@ -7,6 +9,27 @@ chapters = [
     "Learn functions",
     "For loops for the win",
 ]
+
+def get_key(key):
+    config.read(".tschool")
+    try:
+        return config.get("TSCHOOL", key)
+    except configparser.NoSectionError:
+        return None
+    except configparser.NoOptionError:
+        return None
+
+def set_key(key, value):
+    try:
+        config.add_section("TSCHOOL")
+    except configparser.DuplicateSectionError:
+        pass
+    config.set("TSCHOOL", key, value)
+    with open(".tschool", "w") as f:
+        config.write(f)
+
+def set_chapter(chapter_id):
+    set_key("current_chapter", str(chapter_id))
 
 def print_chapter(chapter_id):
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -51,7 +74,9 @@ def draw_menu(stdscr):
 def main():
     current_selection = curses.wrapper(draw_menu)
     if current_selection is not None:
-        print_chapter(current_selection)
+        chapter = current_selection + 1
+        set_chapter(chapter)
+        print_chapter(chapter)
 
 if __name__ == "__main__":
     main()
