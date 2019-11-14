@@ -1,14 +1,11 @@
 import sys,os
 import curses
 import configparser
-config = configparser.ConfigParser()
+import argparse
 
-chapters = [
-    "Hello world",
-    "Inroduction to variables",
-    "Learn functions",
-    "For loops for the win",
-]
+import learn_python
+
+config = configparser.ConfigParser()
 
 def get_key(key):
     config.read(".tschool")
@@ -31,7 +28,11 @@ def set_key(key, value):
 def set_chapter(chapter_id):
     set_key("current_chapter", str(chapter_id))
 
-def print_chapter(chapter_id):
+def get_current_chapter():
+    return int(get_key("current_chapter")) or 1
+
+def print_chapter(chapter_id=None):
+    chapter_id = chapter_id or get_current_chapter()
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Epic")
 
@@ -47,23 +48,25 @@ def draw_menu(stdscr):
     k = 0
     while k != ord('q'):
         i = 0
-        for chapter in chapters:
+        for chapter_id in learn_python.index:
+            chapter = learn_python.index[chapter_id]
             color_pair = 1
             if current_selection == i:
                 color_pair = 2
             stdscr.attron(curses.color_pair(color_pair))
-            text_row = "* {}".format(chapter)
+            text_row = "* {}".format(chapter["title"])
             stdscr.addstr(i, 0, text_row)
             stdscr.attroff(curses.color_pair(color_pair))
             i += 1
+
         k = stdscr.getch()
         if k == curses.KEY_UP:
             if current_selection == 0:
-                current_selection = len(chapters) - 1
+                current_selection = len(learn_python.index) - 1
             else:
                 current_selection = current_selection - 1
         elif k == curses.KEY_DOWN:
-            if current_selection == len(chapters) - 1:
+            if current_selection == len(learn_python.index) - 1:
                 current_selection = 0
             else:
                 current_selection = current_selection + 1
@@ -72,11 +75,20 @@ def draw_menu(stdscr):
         stdscr.refresh()
 
 def main():
-    current_selection = curses.wrapper(draw_menu)
-    if current_selection is not None:
-        chapter = current_selection + 1
-        set_chapter(chapter)
-        print_chapter(chapter)
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('option', nargs='?', default=None)
+
+    args = parser.parse_args()
+    option = args.option
+
+    if option is None:
+        current_selection = curses.wrapper(draw_menu)
+        if current_selection is not None:
+            chapter = current_selection + 1
+            set_chapter(chapter)
+            print_chapter(chapter)
+    elif option == "print":
+        print_chapter()
 
 if __name__ == "__main__":
     main()
